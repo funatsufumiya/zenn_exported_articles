@@ -1,0 +1,190 @@
+{
+  "title": "Bevy Engineプラグイン 便利そうなものまとめ 2025",
+  "closed": false,
+  "archived": false,
+  "created_at": "2025-01-10",
+  "comments": [
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-10",
+      "body_markdown": "公式のBevy Asset一覧はこちら。\nhttps://bevyengine.org/assets/#assets\n\n前記事の、2024年の個人的Bevy Assetまとめはこちら。\nhttps://zenn.dev/funatsufumiya/scraps/0f7be4830dc8ef\n\nなおBevyの最新情報は、This Week In BevyというYouTubeチャンネルがわかりやすい。\nhttps://thisweekinbevy.com/",
+      "body_updated_at": "2025-05-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-10",
+      "body_markdown": "フレームバッファにレンダリングさせるためのプラグイン。（bevy 0.15〜）\nhttps://crates.io/crates/bevy_framebuffer\n\n※ ちなみにこのプラグインの主眼としているのはひょっとしたら通常のフレームバッファの使い方とは異なる可能性もあるので、一応RenderTargetを使った一般的な方法も以下に掲載しておきたい。\nhttps://bevyengine.org/examples/3d-rendering/render-to-texture/",
+      "body_updated_at": "2025-01-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-10",
+      "body_markdown": "GIFやWebPアニメーションを再生できるようにするプラグイン（bevy 0.13〜）。こういうの地味に嬉しい。\nhttps://crates.io/crates/vleue_kinetoscope\n\n![](https://storage.googleapis.com/zenn-user-upload/170b7091cdb1-20250130.webp)\n",
+      "body_updated_at": "2025-01-30"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-22",
+      "body_markdown": "ResourceやComponentの変更に対して、リアクティブにしてくれるプラグイン。これがあればReactみたいなノリで書くことができて便利そう。\nhttps://crates.io/crates/bevy_mod_reaction\n\n```rust\nfn setup(mut commands: Commands) {\n    // Coarse-grained reactivity:\n    // This reaction will only run when the `Health` component belonging to `scope.entity` changes.\n    commands.spawn((\n        Health(100),\n        Reaction::derive(|scope: In<Scope>, mut query: ReactiveQuery<&Health>| {\n            let health = query.get(scope.entity).unwrap();\n            Damage(health.0 * 2)\n        }),\n    ));\n}\n```\n\n執筆時点で0.14のみ対応だったので、0.15対応のPRを作成してみた。（マージされるかやコードレビューについては都度追記したい。）\nhttps://github.com/matthunz/bevy_mod_reaction/pull/1/files\n\nちなみに実用してみると意外と利用できないケースも多く、完全にReactみたいに使いたい場合はちょっと制約がキツイかも。",
+      "body_updated_at": "2025-02-04",
+      "children": [
+        {
+          "author": "funatsufumiya",
+          "created_at": "2025-02-18",
+          "body_markdown": "こちらも同じくReactiveなアドオンとして有用そう。こちらの方が適用可能範囲は広そう。\nhttps://github.com/databasedav/haalka",
+          "body_updated_at": "2025-02-18"
+        },
+        {
+          "author": "funatsufumiya",
+          "created_at": "2025-08-05",
+          "body_markdown": "こちらも同じく。haalkaと同じ作者の似た主旨のアドオンと思われるが、詳細は未調査。\nhttps://github.com/databasedav/jonmo",
+          "body_updated_at": "2025-08-05"
+        }
+      ]
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-25",
+      "body_markdown": "メッシュをプログラムで書いていきたいときに便利なプラグイン。\nhttps://github.com/bevy-procedural/meshes\n\n![](https://storage.googleapis.com/zenn-user-upload/9145c5591be5-20250130.png)\n\nこちらも執筆時点で0.14まで対応だったので、0.15対応のPRを作成してマージ待ち。\n\n【追記】0.15 / 0.16 対応のPRが無事マージされた。そのとき、後継のクレートがあることがREADMEに追記された。こちらはBevy連動機能もあるものの、フレームワーク非依存になるよう意識して実装されているとのこと。\n\nhttps://github.com/bevy-procedural/modelling",
+      "body_updated_at": "2025-05-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-25",
+      "body_markdown": "トレイトをクエリの対象にしたいときに使えるプラグイン。具体的には、例えばPlayer、Enemyなどの実体にかかわらず、共通のトレイトを持つものをクエリするときに使える。\nhttps://github.com/JoJoJet/bevy-trait-query\n\n```rust\nfn show_tooltips(\n    tooltips: Query<&dyn Tooltip>,\n    // ...\n) {\n    for tooltip in tooltips.iter().flatten() {\n        println!(\"Tooltip: {}\", tooltip.tooltip());\n    }\n}\n```",
+      "body_updated_at": "2025-01-30"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-30",
+      "body_markdown": "2D/3D両対応の物理エンジン\nhttps://github.com/Jondolf/avian\n\n![](https://storage.googleapis.com/zenn-user-upload/a5d8bd27166f-20250130.gif)\n",
+      "body_updated_at": "2025-01-30"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-01-30",
+      "body_markdown": "Gameboy Advance上でBevyを動かそうとする取り組み。描画はagb-rsで行い、ECSなどのハンドリングにBevyを使用している様子。\n\naespiteからスプライトを読み込むなど本格的なのに、no-stdで利用する工夫が随所にあってすごい。\n\nhttps://a.lemmy.world/lemmy.world/post/24707815\n\nhttps://github.com/bushrat011899/bevy_agb_test\n\n![https://imgur.com/4iDzHFF](https://i.imgur.com/4iDzHFF.gif)",
+      "body_updated_at": "2025-02-04"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-02-04",
+      "body_markdown": "Bevyではないものの、ブーリアンなどのメッシュの操作ができるライブラリ。\nhttps://github.com/dima634/baby_shark\n\n![gif](https://github.com/dima634/baby_shark/raw/main/assets/readme/boolean_subtract.gif)\n\nExampleはSTLファイルの読み書きになっているので、オンメモリで操作する方法を調べたいところ。\n\n[GodotでいうCSG](https://docs.godotengine.org/en/stable/tutorials/3d/csg_tools.html#prototyping-levels-with-csg)をやりたい場合は以下も便利かもしれない。これを使えばおそらく大抵のCSGモデル生成は可能。\nhttps://crates.io/crates/csgrs",
+      "body_updated_at": "2025-05-11"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-02-07",
+      "body_markdown": "忘れがちな登録関係を自動化してくれるプラグイン。\nhttps://crates.io/crates/bevy_auto_plugin\n\n```rust\nuse bevy::prelude::*;\nuse bevy_auto_plugin::auto_plugin_module::*;\n\n#[auto_plugin(init_name=init)]\nmod plugin_module {\n    use super::*;\n    \n    #[auto_register_type]\n    #[derive(Component, Reflect)]\n    #[reflect(Component)]\n    #[auto_name]\n    pub struct FooComponent;\n\n    #[auto_register_type]\n    #[auto_add_event]\n    #[derive(Event, Reflect)]\n    pub struct FooEvent;\n\n    #[auto_register_type]\n    #[auto_init_resource]\n    #[derive(Resource, Default, Reflect)]\n    #[reflect(Resource)]\n    pub struct FooResource;\n}\n\n#[auto_plugin(app=app)]\nfn plugin(app: &mut App) {\n    plugin_module::init(app);\n}\n```\n\n上記コードは以下を自動生成してくれる。\n\n```rust\nmod plugin_module {\n    // ...\n    fn init(app: &mut App) {\n        app.register_type::<FooComponent>();\n        app.register_type::<FooEvent>();\n        app.register_type::<FooResource>();\n\n        app.add_event::<FooEvent>();\n\n        app.init_resource::<FooResource>();\n\n        app.register_required_components_with::<FooComponent, Name>(|| Name::new(\"FooComponent\"));\n    }\n}\n```"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-02-18",
+      "body_markdown": "BevyにWebサーバ機能を追加するアドオン。OSCのように他のアプリケーションとの連動の際に便利そうだし、シンプルなWebサーバの実験にはこれで十分そう。\nhttps://crates.io/crates/bevy_webserver\n\n```rust\nuse bevy::prelude::*;\nuse bevy_webserver::RouterAppExt;\n\nfn main() {\n    App::new()\n        .add_plugins(MinimalPlugins)\n        .route(\"/hello_world\", axum::routing::get(hello_world))\n        .run();\n}\n\nasync fn hello_world() -> axum::response::Html<String> {\n    axum::response::Html(\"<p>Hello world!</p>\".to_string())\n}\n```\n\nまた、同じ作者によるDB実装も便利そう。リソース等を自動永続化してくれるのは良い。\n\nhttps://crates.io/crates/bevy_easy_database\n\n```rust\nuse bevy::prelude::*;\nuse bevy_database::{DatabasePlugin, DatabaseIgnore};\n\nfn main() {\n    App::new()\n        .add_plugins(DefaultPlugins)\n        .add_plugins(DatabasePlugin)  // Add the database plugin\n        .add_database_mapping::<Transform>()  // Register components you want to persist\n        .run();\n}\n```",
+      "body_updated_at": "2025-02-18"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-02-25",
+      "body_markdown": "今日のBevy this weekで紹介されていた、TrenchBroomというレベルエディタ連携。とても便利そうな予感。\n\nhttps://trenchbroom.github.io/\n\nhttps://github.com/Noxmore/bevy_trenchbroom\n\n![](https://storage.googleapis.com/zenn-user-upload/ad02f6007ca5-20250510.png)\n",
+      "body_updated_at": "2025-05-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-03-12",
+      "body_markdown": "bevy_mod_async: 非同期にspawnしたりを手助けするプラグイン。\nhttps://crates.io/crates/bevy_mod_async\n\n同様のプラグインは複数存在するので、選択肢が多いとニーズに合致するものが増えるのではないかと思う。[過去に紹介](https://zenn.dev/link/comments/43422eb0b63ff8)した[bevy_flurx](https://github.com/not-elm/bevy_flurx)なども参考のこと。\n",
+      "body_updated_at": "2025-03-12"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-03-18",
+      "body_markdown": "BevyでCurvoを利用できるようにするプラグイン。NURBSの直接描画が可能になり、Loftなどの動的な造形が可能に。\nhttps://github.com/mattatz/bevy_curvo"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-04-13",
+      "body_markdown": "任意のポリゴンメッシュを作る時に便利そうなプラグイン。BevyのPrimitives自体にもPolygonはあるので、適宜使い分けていくのが良さそう。\nhttps://github.com/nilaysavant/bevy_mesh_drawing\n![](https://storage.googleapis.com/zenn-user-upload/ee39ae83f00d-20250413.gif)\n\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-08",
+      "body_markdown": "BevyでGLTFを読み込むと、座標系の違いにより180度回転してしまうことを防ぐプラグイン。（今後は公式で対応していくんじゃないだろうか。）\nhttps://github.com/janhohenheim/bevy_fix_gltf_coordinate_system"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-08",
+      "body_markdown": "プラグインを作るときの微妙に読みづらくなりがちなスパゲッティコードを、アノテーションによって読みやすくしてくれるもの。DSLっぽくて好き。\nhttps://github.com/TGRCdev/bevy-butler\n\n```rust\nuse bevy::prelude::*;\nuse bevy_butler::*;\n\n#[butler_plugin]\nstruct MyPlugin;\n\n#[derive(Resource)]\n#[insert_resource(plugin = MyPlugin, init = Hello(\"World\".to_string()))]\nstruct Hello(String);\n\n#[add_system(schedule = Update, plugin = MyPlugin)]\nfn hello_plugin(name: Res<Hello>)\n{\n    info!(\"Hello, {}!\", name.0);\n}\n\n#[add_system(schedule = Update, plugin = MyPlugin, after = hello_plugin)]\nfn goodbye_plugin(name: Res<Hello>)\n{\n    info!(\"Goodbye, {}!\", name.0);\n}\n\nfn main() {\n    App::new()\n        .add_plugins(MyPlugin)\n        .run();\n}\n```"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-09",
+      "body_markdown": "BevyでFunDSPというサウンドライブラリを使いやすくするクレート。これで音関係は最強の予感。\nhttps://github.com/harudagondi/bevy_fundsp\n\n注意としては、Bevy 0.16まで対応する各種PRが既になされているものの、作者がマージしていない様子。そのため、git指定やサブモジュールから使えば最新まで対応できる。\n\nまたFunDSP自体は、Debugビルドでは音にグリッチが発生しやすく、Releaseビルドでないと性能を発揮しないので、実用上はFunDSPを別プロジェクトとしてdllなどを作るようコンパイルして、リンクさせるのがいいと思う。（例えばSuperColliderなどのサウンドサーバが別にあることが多いのと同じ。）\n\nちなみにglicolというRustで実装されたTidalCycles的な音楽・音響言語も存在していて、こちらもRustに埋め込んで利用することが可能なので、Bevyバインディングなどを作ってみたいところ。\nhttps://github.com/chaosprint/glicol",
+      "body_updated_at": "2025-05-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-10",
+      "body_markdown": "Bevyのプラグインではないのだけれど、Rustでディープラーニングを可能にするクレート。これを使えば例えば、画像認識などはもちろん、コンピュートシェーダーで実行するような処理もテンソルで書けるようになるので、幅が広がる。\nhttps://burn.dev/\n\nhttps://github.com/tracel-ai/burn",
+      "body_updated_at": "2025-05-10"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-10",
+      "body_markdown": "動作中のBevyから情報を受信して、階層やリアルタイムのパラメータなどを確認できるインスペクタ。nvim上で動作する。\nhttps://github.com/Lommix/bevy_inspector.nvim\n\n![](https://storage.googleapis.com/zenn-user-upload/4ff07d28705d-20250510.jpeg)\n\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-10",
+      "body_markdown": "Bevyでエフェクト（VFX）を作る際のシェーダ呼び出しやアニメーション定義などをRONから書いて読み込めるようにするもの。\nhttps://github.com/ethereumdegen/bevy_magic_fx\n\n![](https://storage.googleapis.com/zenn-user-upload/38936855636f-20250510.gif)\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-11",
+      "body_markdown": "CADのようなパラメトリック・モデリングを可能にするクレート。READMEの動画を見ていただければわかるけれど、可能性の塊で、こういうクレートが続々と出てくることにBevyの末恐ろしさを感じる。\nhttps://github.com/nilaysavant/bevy_pmetra\n\n[![](https://storage.googleapis.com/zenn-user-upload/d1ee07c467fe-20250511.png)](https://github.com/nilaysavant/bevy_pmetra/blob/master/README.md)\n\n![](https://storage.googleapis.com/zenn-user-upload/f656bbbf12bb-20250511.png)\n\n内部的に、RustにおけるCADカーネル実装を利用していて、複雑なことがいろいろできそうな予感。\nhttps://github.com/ricosjp/truck",
+      "body_updated_at": "2025-05-11"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-11",
+      "body_markdown": "bevy_pmetraとは違う意味で、プロシージャルでジェネラティブなメッシュ（3Dモデル）やテクスチャの生成ができるクレート。こちらはいわゆる地形生成などに便利そう。見た感じノイズベースのものか？\nhttps://github.com/manankarnik/bevy_generative\n\n[Procedra](https://procedra.netlify.app)というサイトでどんなモデルが生成できるかが確認できる。パラメータはリアルタイムに変更できる。\n![](https://storage.googleapis.com/zenn-user-upload/6ec880717852-20250511.png)\n\n",
+      "body_updated_at": "2025-05-12"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-12",
+      "body_markdown": "マップやモデルなどをプロシージャルに生成できるクレート。こちらは1つのメッシュを生成するのではなくて、生成ルールに従ってダンジョンやマップを生成できる。\nhttps://github.com/Henauxg/ghx_proc_gen\n\n![](https://storage.googleapis.com/zenn-user-upload/c57629a4d0b3-20250512.gif)\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-12",
+      "body_markdown": "ベクトル形状のアニメーションなどを扱うためのクレート。\nhttps://github.com/james-j-obrien/bevy_vector_shapes\n\n![](https://storage.googleapis.com/zenn-user-upload/801f16f5cef3-20250512.gif)\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-12",
+      "body_markdown": "NURBSカーブを扱うためのクレート。Bevyには非依存で実装されている。\nhttps://github.com/mattatz/curvo\n\n![](https://storage.googleapis.com/zenn-user-upload/c918877b6694-20250512.png)\n\n以下のクレートを併用するとさらにインタラクティブに編集できたりもする様子。\nhttps://github.com/mattatz/bevy_curvo\n\nちなみに公式にも似た機能が存在。\nhttps://bevyengine.org/examples/math/cubic-splines/",
+      "body_updated_at": "2025-05-12"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-05-12",
+      "body_markdown": "クレートではないが、カーブからチューブを生成するときに役立つRedditのスレッド。\nhttps://www.reddit.com/r/bevy/comments/17yjlrf/rendering_a_3d_tube_from_a_curve/"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-07-30",
+      "body_markdown": "This Week in Bevy で紹介されていた、bevyのステートのロード/セーブを支援するためのクレート。\nhttps://docs.rs/bevy_save/latest/bevy_save/\n\n単純にシリアライズするだけならSerdeがあるけれど、Bevyに特化しているのでECSを絡めた複合的な処理やフローが書けるのが特徴の様子。",
+      "body_updated_at": "2025-07-30"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-08-04",
+      "body_markdown": "This Week in Bevy で紹介されていた、WebRTCを通じてクラウドゲーミングを実現できるクレート。こういうクレートが出るとワクワクするし、Bevyは今後どういう広がりを見せていくのかが本当に楽しみになる。\n\nhttps://github.com/rlamarche/bevy_streaming\n\n![](https://storage.googleapis.com/zenn-user-upload/68cab60d86ce-20250804.jpg)\n"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2025-08-30",
+      "body_markdown": "フェードイン・フェードアウトを実現するためのアドオン。公式には[AnimationTransitions](https://docs.rs/bevy/latest/bevy/prelude/struct.AnimationTransitions.html)などを使うと良いのかなと思うけれど、もっと気軽にフェードインなどができそう。 \n\nhttps://github.com/mintlu8/bevy_mod_opacity\n\nフェードインができたらスライドインなどもやりたくなるけれど、そうした複雑なことはこのアドオンではできなそう。[bevy_flurx](https://github.com/not-elm/bevy_flurx) などもうまく使うといいのかな。"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "title": "OpenGL on XXX まとめ",
+  "closed": true,
+  "archived": false,
+  "created_at": "2024-11-19",
+  "comments": [
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-19",
+      "body_markdown": "このまとめを書き始めたきっかけは、[OpenFrameworks](https://openframeworks.cc/)をVulkan/DirectX12/Metalなどの低レベル描画APIに対応させるには、実はOpenGLごと低レベル描画APIにポートするのが一番なのではないかと思ったこと。\n\nそうすれば、大半はOpenGLで書いておきながらも、必要なところで低レベル描画APIが呼べるので、ボトルネックを回避できる。そして、徐々に完全移行したり、フォールバックとしてOpenGLを書くという道筋ができる。…と考えた。"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-19",
+      "body_markdown": "OpenGL on Metal\nhttps://github.com/openglonmetal/MGL"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-19",
+      "body_markdown": "OpenGL on Vulkan\nhttps://docs.mesa3d.org/drivers/zink.html"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-19",
+      "body_markdown": "本当は、WebGPUのような共通で安定した仕様のAPIの上にOpenGL(ES)があった方が、将来性は良いのだろうけれど、オーバーヘッドは多少ある。\n\n[bgfx](https://github.com/bkaradzic/bgfx)や[sokol](https://github.com/floooh/sokol)等の上にOpenGL API (sokolは実は既に[少し](https://github.com/floooh/sokol/blob/master/util/sokol_gl.h)ある) を実装するメリットを、あわせて検証していきたい。"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-19",
+      "body_markdown": "ZinkをベースにしたOpenGL on DirectX12の話\nhttps://www.collabora.com/news-and-blog/blog/2020/07/09/deep-dive-into-opengl-over-directx-layering/"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-20",
+      "body_markdown": "MesaのD3D12ドライバ。こちらではOpenGL3.3の機能がDX12に変換されて使えるとのこと。\nhttps://docs.mesa3d.org/drivers/d3d12.html",
+      "body_updated_at": "2024-11-20"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-20",
+      "body_markdown": "TODO: 今回の目的は、おおよそはOpenGLで書きつつ、低レベルAPIへのアクセスも担保することなので、それがZinkやD3D12ドライバ、そしてZinkで可能かどうか要確認。"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-29",
+      "body_markdown": "OpenGL ES on Vulkan\nhttps://github.com/stjordanis/GLOVE-1\n\nこれが自分の思うものと一番近いかもしれない。",
+      "body_updated_at": "2024-11-29"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-11-29",
+      "body_markdown": "一応別のアプローチとして、GLとVulkanを共存させるノウハウがまとめられたリポジトリ。\nhttps://github.com/nvpro-samples/gl_vk_simple_interop"
+    },
+    {
+      "author": "funatsufumiya",
+      "created_at": "2024-12-15",
+      "body_markdown": "番外編として、純粋なC (C99) で書かれたOpenGL-likeな実装。いわゆるソフトウェアレンダラに分類されるものでありながら、OpenGL 3.x 風のAPIを提供し、シングルヘッダライブラリであるため簡単にビルドできるのが特徴。\nhttps://github.com/rswinkle/PortableGL\n\nREADMEに書かれているように、GLの構造を学ぶための教育用途にも役立つだろうし、dGPUやiGPUがない環境でレンダリングしたい場合（例えばサーバサイド）に役立つかもしれない。",
+      "body_updated_at": "2024-12-15"
+    }
+  ]
+}
