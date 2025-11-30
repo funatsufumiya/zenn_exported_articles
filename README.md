@@ -2,7 +2,25 @@
 
 Zennの `@funatsufumiya` アカウント閉鎖に伴うバックアップです。
 
-[articles](./articles)以下にあるMarkdownより内容閲覧が可能ですが、Markdownファイル名はタイトルではなくハッシュ値のため、目次がないのが現状です。（目次の生成は検討中です。）
+[articles](./articles)以下にあるMarkdownより内容閲覧が可能です。目次は以下にあります。
+
+## 目次
+
+### articles
+
+- [Zigの@typeInfoと@Typeを理解する](articles/1e2d4da94ba151.md)
+- [Zigのエラーはなぜシンプルなenumなのか、の哲学](articles/26850c2b827b25.md)
+- [build.zig.zonを使ったZigの新しいパッケージ管理 (Zig 0.11〜0.13)](articles/7760a4688be3a5.md)
+- [Windows HomeからProへの更新がうまくいかないとき](articles/78241444722ae0.md)
+- [ffmpegで複数の指定フレーム(飛び飛び)を一度に画像書き出しする方法](articles/788127107dffbe.md)
+- [Zigの非公式パッケージマネージャー、zigmodとgyroを使ってみる](articles/82301d8ebbf1b1.md)
+- [[Zig] Arena Allocatorを使った \"ふつうの\" Zigプログラミング](articles/b3935504dd1e97.md)
+- [AWSの料金から、無償枠 (クレジット) を引いたものを表示する方法](articles/e16514ada2da79.md)
+- [Bevy 0.15 → 0.16 の目立った変更点](articles/f74097c7b1dd6a.md)
+
+### scraps
+
+WIP
 
 ## 補足（アカウント閉鎖の経緯）
 
