@@ -20,7 +20,30 @@ Zennの `@funatsufumiya` アカウント閉鎖に伴うバックアップです�
 
 ### scraps
 
-WIP
+- Zigの@typeInfo()やbuiltinで遊ぶ ( ≒ @compileLogを使ってcomptimeで遊ぶ)
+    - [JSON](scraps/01dd6f4ff03a1f.json)
+- Bevy Engineプラグイン 便利そうなものまとめ 2025
+    - [JSON](scraps/05f699730ab2ee.json)
+- Zigで子・孫のモジュール（依存関係）を使う方法 (zig 0.13.0)
+    - [JSON](scraps/0be4ed9b9d554b.json)
+- Bevy Engineプラグイン 便利そうなものまとめ (2024)
+    - [JSON](scraps/0f7be4830dc8ef.json)
+- Zigで条件付きコンパイル (zig 0.13.0)
+    - [JSON](scraps/85a7b95f631afb.json)
+- Bevy勉強ノート2025
+    - [JSON](scraps/adf7e6d7822944.json)
+- Bevy Engine勉強メモ (2024)
+    - [JSON](scraps/b235e0d69ddd9a.json)
+- OpenGL on XXX まとめ
+    - [JSON](scraps/c7ed69cc1401f4.json)
+- Zig 0.13.0で多相（ポリモーフィズム）
+    - [JSON](scraps/ded2eecac9e4ed.json)
+- 破綻したメッシュを修正したいときの方法リスト
+    - [JSON](scraps/f13f7124c34ac6.json)
+- C3言語 勉強メモ
+    - [JSON](scraps/fa609024d2c3aa.json)
+
+----
 
 ## 補足（アカウント閉鎖の経緯）
 
