@@ -27,12 +27,12 @@ https://github.com/funatsufumiya/zig-polymorphism-study
 今回取り扱うのはトレイト的なもので、いわゆるアドホック多相。`anytype`を使えば簡単に実装できるけど、できれば型名をコメント以外で明記したいところ。（Zigはいわば、コンパイル時ダックタイピングのようなことをする言語なので、Zig的にはこれで良いのかもしれないが。）
 
 ```zig
-const std = @import(\"std\");
+const std = @import("std");
 const testing = std.testing;
 
 const Cat = struct {
     pub fn meow(_: *Cat) []const u8 {
-        return \"meow\";
+        return "meow";
     }
 
     pub fn voice(self: *Cat) []const u8 {
@@ -42,7 +42,7 @@ const Cat = struct {
 
 const Dog = struct {
     pub fn bow(_: *Dog) []const u8 {
-        return \"bow wow\";
+        return "bow wow";
     }
 
     pub fn voice(self: *Dog) []const u8 {
@@ -54,12 +54,12 @@ pub fn animalVoice(animal: anytype) void { // <- ここに型名を示したい�
     animal.voice();
 }
 
-test \"animal voice\" {
+test "animal voice" {
     var cat = Cat{};
     var dog = Dog{};
 
-    try testing.expectEqualSlices(u8, \"meow\", cat.voice());
-    try testing.expectEqualSlices(u8, \"bow wow\", dog.voice());
+    try testing.expectEqualSlices(u8, "meow", cat.voice());
+    try testing.expectEqualSlices(u8, "bow wow", dog.voice());
 }
 ```
 
@@ -73,7 +73,7 @@ test \"animal voice\" {
 次に`anyopaque`を使った方法。`anytype`を使うよりも意図は明確。ただ、共通の関数が多い時は辛そう。
 
 ```zig
-const std = @import(\"std\");
+const std = @import("std");
 const testing = std.testing;
 
 const Animal = struct {
@@ -86,7 +86,7 @@ const Animal = struct {
 
 const Cat = struct {
     pub fn meow(_: *Cat) []const u8 {
-        return \"meow\";
+        return "meow";
     }
 
     pub fn asAnimal(_: *Cat) Animal {
@@ -103,7 +103,7 @@ const Cat = struct {
 
 const Dog = struct {
     pub fn bow(_: *Dog) []const u8 {
-        return \"bow wow\";
+        return "bow wow";
     }
 
     pub fn asAnimal(_: *Dog) Animal {
@@ -122,15 +122,15 @@ pub fn animalVoice(animal: *Animal) []const u8 {
     return animal.voice();
 }
 
-test \"animal voice with interface\" {
+test "animal voice with interface" {
     var cat = Cat{};
     var dog = Dog{};
     
     var cat_animal = cat.asAnimal();
     var dog_animal = dog.asAnimal();
 
-    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));
-    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));
+    try testing.expectEqualSlices(u8, "meow", animalVoice(&cat_animal));
+    try testing.expectEqualSlices(u8, "bow wow", animalVoice(&dog_animal));
 }
 ``
 
@@ -145,7 +145,7 @@ test \"animal voice with interface\" {
 インターフェースの方で、インスタンスおよびvtableを持つようにする方法。スッキリしてきたけど、`init`で関数ごとの実装が必要なのがやや冗長で、関数が多くなってくると辛そうだけど、とはいえ子クラスが増えても修正の必要はないので、今のところこれが一番スッキリか？（もっと良い方法がみつかったら追記したい。）
 
 ```zig
-const std = @import(\"std\");
+const std = @import("std");
 const testing = std.testing;
 
 const Animal = struct {
@@ -191,7 +191,7 @@ const Cat = struct {
     name_str: []const u8,
 
     pub fn voice(_: *const Cat) []const u8 {
-        return \"meow\";
+        return "meow";
     }
 
     pub fn name(self: *const Cat) []const u8 {
@@ -207,7 +207,7 @@ const Dog = struct {
     name_str: []const u8,
 
     pub fn voice(_: *const Dog) []const u8 {
-        return \"bow wow\";
+        return "bow wow";
     }
 
     pub fn name(self: *const Dog) []const u8 {
@@ -227,17 +227,17 @@ pub fn animalName(animal: *const Animal) []const u8 {
     return animal.name();
 }
 
-test \"animal voice and name with interface\" {
-    var cat = Cat{ .name_str = \"Tama\" };
-    var dog = Dog{ .name_str = \"Pochi\" };
+test "animal voice and name with interface" {
+    var cat = Cat{ .name_str = "Tama" };
+    var dog = Dog{ .name_str = "Pochi" };
     
     var cat_animal = cat.asAnimal();
     var dog_animal = dog.asAnimal();
 
-    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));
-    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));
-    try testing.expectEqualSlices(u8, \"Tama\", animalName(&cat_animal));
-    try testing.expectEqualSlices(u8, \"Pochi\", animalName(&dog_animal));
+    try testing.expectEqualSlices(u8, "meow", animalVoice(&cat_animal));
+    try testing.expectEqualSlices(u8, "bow wow", animalVoice(&dog_animal));
+    try testing.expectEqualSlices(u8, "Tama", animalName(&cat_animal));
+    try testing.expectEqualSlices(u8, "Pochi", animalName(&dog_animal));
 }
 ```
 
@@ -347,8 +347,8 @@ const Animal = struct {
 
     pub fn init(comptime T: type, instance: *T) Animal {
         const vtable = comptime VTable{
-            .voiceFn = makeMethodCaller(T, \"voice\"),
-            .nameFn = makeMethodCaller(T, \"name\"),
+            .voiceFn = makeMethodCaller(T, "voice"),
+            .nameFn = makeMethodCaller(T, "name"),
         };
         return .{
             .vtable = &vtable,
