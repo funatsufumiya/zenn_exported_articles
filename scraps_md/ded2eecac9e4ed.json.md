@@ -4,54 +4,67 @@ closed: true
 archived: false
 created_at: "2025-01-18"
 ---
-{
-  "comments": [
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "実験結果のGitリポジトリ。各スクラップに対応してlib.zig 〜 lib7.zig がある。\nhttps://github.com/funatsufumiya/zig-polymorphism-study",
-      "body_updated_at": "2025-01-18"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "今回取り扱うのはトレイト的なもので、いわゆるアドホック多相。`anytype`を使えば簡単に実装できるけど、できれば型名をコメント以外で明記したいところ。（Zigはいわば、コンパイル時ダックタイピングのようなことをする言語なので、Zig的にはこれで良いのかもしれないが。）\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Cat = struct {\n    pub fn meow(_: *Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn voice(self: *Cat) []const u8 {\n        return self.meow();\n    }\n};\n\nconst Dog = struct {\n    pub fn bow(_: *Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn voice(self: *Dog) []const u8 {\n        return self.bow();\n    }\n};\n\npub fn animalVoice(animal: anytype) void { // <- ここに型名を示したい。\n    animal.voice();\n}\n\ntest \"animal voice\" {\n    var cat = Cat{};\n    var dog = Dog{};\n\n    try testing.expectEqualSlices(u8, \"meow\", cat.voice());\n    try testing.expectEqualSlices(u8, \"bow wow\", dog.voice());\n}\n```",
-      "body_updated_at": "2025-01-23"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "次に`anyopaque`を使った方法。`anytype`を使うよりも意図は明確。ただ、共通の関数が多い時は辛そう。\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Animal = struct {\n    voiceFn: *const fn (self: *anyopaque) []const u8,\n\n    pub fn voice(self: *Animal) []const u8 {\n        return self.voiceFn(self);\n    }\n};\n\nconst Cat = struct {\n    pub fn meow(_: *Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn asAnimal(_: *Cat) Animal {\n        return .{\n            .voiceFn = struct {\n                fn voice(ptr: *anyopaque) []const u8 {\n                    const self_ptr = @as(*Cat, @ptrCast(@alignCast(ptr)));\n                    return self_ptr.meow();\n                }\n            }.voice,\n        };\n    }\n};\n\nconst Dog = struct {\n    pub fn bow(_: *Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn asAnimal(_: *Dog) Animal {\n        return .{\n            .voiceFn = struct {\n                fn voice(ptr: *anyopaque) []const u8 {\n                    const self_ptr = @as(*Dog, @ptrCast(@alignCast(ptr)));\n                    return self_ptr.bow();\n                }\n            }.voice,\n        };\n    }\n};\n\npub fn animalVoice(animal: *Animal) []const u8 {\n    return animal.voice();\n}\n\ntest \"animal voice with interface\" {\n    var cat = Cat{};\n    var dog = Dog{};\n    \n    var cat_animal = cat.asAnimal();\n    var dog_animal = dog.asAnimal();\n\n    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));\n    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));\n}\n```"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "インターフェースの方で、インスタンスおよびvtableを持つようにする方法。スッキリしてきたけど、`init`で関数ごとの実装が必要なのがやや冗長で、関数が多くなってくると辛そうだけど、とはいえ子クラスが増えても修正の必要はないので、今のところこれが一番スッキリか？（もっと良い方法がみつかったら追記したい。）\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = @as(*T, @ptrCast(@alignCast(ptr)));\n                    return self.voice();\n                }\n            }.func,\n            .nameFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = @as(*T, @ptrCast(@alignCast(ptr)));\n                    return self.name();\n                }\n            }.func,\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n\nconst Cat = struct {\n    name_str: []const u8,\n\n    pub fn voice(_: *const Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn name(self: *const Cat) []const u8 {\n        return self.name_str;\n    }\n\n    pub fn asAnimal(self: *Cat) Animal {\n        return Animal.init(Cat, self);\n    }\n};\n\nconst Dog = struct {\n    name_str: []const u8,\n\n    pub fn voice(_: *const Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn name(self: *const Dog) []const u8 {\n        return self.name_str;\n    }\n\n    pub fn asAnimal(self: *Dog) Animal {\n        return Animal.init(Dog, self);\n    }\n};\n\npub fn animalVoice(animal: *const Animal) []const u8 {\n    return animal.voice();\n}\n\npub fn animalName(animal: *const Animal) []const u8 {\n    return animal.name();\n}\n\ntest \"animal voice and name with interface\" {\n    var cat = Cat{ .name_str = \"Tama\" };\n    var dog = Dog{ .name_str = \"Pochi\" };\n    \n    var cat_animal = cat.asAnimal();\n    var dog_animal = dog.asAnimal();\n\n    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));\n    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));\n    try testing.expectEqualSlices(u8, \"Tama\", animalName(&cat_animal));\n    try testing.expectEqualSlices(u8, \"Pochi\", animalName(&dog_animal));\n}\n```",
-      "body_updated_at": "2025-01-18"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "init内の、`const self = @as(*T, @ptrCast(@alignCast(ptr)));` を関数を使って共通化した例。\nこれで若干init書くのは楽になるかな？（[GitHubのREADME](https://github.com/funatsufumiya/zig-polymorphism-study)には、この**フルバージョン**を記載。）\n\n```zig\n// （Animal以外の定義は先に同じ。）\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    fn castTo(comptime T: type, ptr: *anyopaque) *T {\n        return @as(*T, @ptrCast(@alignCast(ptr)));\n    }\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = Animal.castTo(T, ptr);\n                    return self.voice();\n                }\n            }.func,\n            .nameFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = Animal.castTo(T, ptr);\n                    return self.name();\n                }\n            }.func,\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n```",
-      "body_updated_at": "2025-01-18"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "さらにさらに、init内のメソッド作成ごと共通化したもの。ただ、返り値の型の変更や引数の柔軟性などを考慮していないので、正直一つ前の実装くらいが素直で良い気がする。\n\n```zig\n// （Animal以外の定義は先に同じ。）\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    fn castTo(comptime T: type, ptr: *anyopaque) *T {\n        return @as(*T, @ptrCast(@alignCast(ptr)));\n    }\n\n    fn makeMethodCaller(\n        comptime T: type,\n        comptime method: []const u8,\n    ) fn (*anyopaque) []const u8 {\n        return struct {\n            fn caller(ptr: *anyopaque) []const u8 {\n                const self = Animal.castTo(T, ptr);\n                return @field(T, method)(self);\n            }\n        }.caller;\n    }\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = makeMethodCaller(T, \"voice\"),\n            .nameFn = makeMethodCaller(T, \"name\"),\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n```",
-      "body_updated_at": "2025-01-18"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-18",
-      "body_markdown": "Blueskyに書いた内容だけど、一応転記。\n\n> これ書いてて思ったけど、zigの「見えないフローはない」というのと言語自体にデフォルトのポリモーフィズムがないことによって、自分がほしいポリモーフィズムが好きに作れるというのは、ある意味良いかもしれないという気がした。\n> \n> もし A or B みたいな型が欲しい場合は、typeor(A, B) みたいな関数[^1]も自作できるし、そう考えるとcomptimeすごい。\n\nこれについてさらにコメントするとすれば、ポリモーフィズムというのはある意味でコードをわかりにくくしてしまうので、C言語のように素直に`abs` / `fabs` / `labs` のように別関数にしてしまう方が、状況によってはわかりやすいのかもしれない。（あるいは最初の例のようにストレートに`anytype`使ってしまう[^2]とか。）\n\n[^1]: zigは型自体を値として返すことができ、型を値として引数に渡せることに注意。\n[^2]: なんとなくRubyのコンパイル時verという気がして、自分は個人的には好き。動的な処理でありながらもコンパイラの静的解析の恩恵が受けれるという、何とも不思議な気分。（もはやcomptimeは静的解析の域を超えているが…。）",
-      "body_updated_at": "2025-01-18"
-    },
-    {
-      "author": "funatsufumiya",
-      "created_at": "2025-01-23",
-      "body_markdown": "ちなみに今回の記事の範疇を超えるものの、zigで総称型のようなものを作るときは、わざわざ `const XXX = struct { }` とせずに、関数で直接、**無名構造体**を返すケースが多い。これは、zigでは型とstructは（comptimeには）ほぼ同列に扱われるためで、zigに慣れていないととても不思議に感じるし、最初、変数の型には何を指定すれば良いのか一瞬戸惑う。（この辺はなんとなくJavaScriptに似ているような気もする。）\n\n（詳しく知りたい方は以下の記事などが詳しい。）\nhttps://zenn.dev/drumato/books/learn-zig-to-be-a-beginner/viewer/code-reading-stdlib-arraylist",
-      "body_updated_at": "2025-01-23"
-    }
-  ]
-}
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-18"
+```
+
+実験結果のGitリポジトリ。各スクラップに対応してlib.zig 〜 lib7.zig がある。\nhttps://github.com/funatsufumiya/zig-polymorphism-study
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-23"
+```
+
+今回取り扱うのはトレイト的なもので、いわゆるアドホック多相。`anytype`を使えば簡単に実装できるけど、できれば型名をコメント以外で明記したいところ。（Zigはいわば、コンパイル時ダックタイピングのようなことをする言語なので、Zig的にはこれで良いのかもしれないが。）\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Cat = struct {\n    pub fn meow(_: *Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn voice(self: *Cat) []const u8 {\n        return self.meow();\n    }\n};\n\nconst Dog = struct {\n    pub fn bow(_: *Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn voice(self: *Dog) []const u8 {\n        return self.bow();\n    }\n};\n\npub fn animalVoice(animal: anytype) void { // <- ここに型名を示したい。\n    animal.voice();\n}\n\ntest \"animal voice\" {\n    var cat = Cat{};\n    var dog = Dog{};\n\n    try testing.expectEqualSlices(u8, \"meow\", cat.voice());\n    try testing.expectEqualSlices(u8, \"bow wow\", dog.voice());\n}\n```
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18"
+```
+
+次に`anyopaque`を使った方法。`anytype`を使うよりも意図は明確。ただ、共通の関数が多い時は辛そう。\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Animal = struct {\n    voiceFn: *const fn (self: *anyopaque) []const u8,\n\n    pub fn voice(self: *Animal) []const u8 {\n        return self.voiceFn(self);\n    }\n};\n\nconst Cat = struct {\n    pub fn meow(_: *Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn asAnimal(_: *Cat) Animal {\n        return .{\n            .voiceFn = struct {\n                fn voice(ptr: *anyopaque) []const u8 {\n                    const self_ptr = @as(*Cat, @ptrCast(@alignCast(ptr)));\n                    return self_ptr.meow();\n                }\n            }.voice,\n        };\n    }\n};\n\nconst Dog = struct {\n    pub fn bow(_: *Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn asAnimal(_: *Dog) Animal {\n        return .{\n            .voiceFn = struct {\n                fn voice(ptr: *anyopaque) []const u8 {\n                    const self_ptr = @as(*Dog, @ptrCast(@alignCast(ptr)));\n                    return self_ptr.bow();\n                }\n            }.voice,\n        };\n    }\n};\n\npub fn animalVoice(animal: *Animal) []const u8 {\n    return animal.voice();\n}\n\ntest \"animal voice with interface\" {\n    var cat = Cat{};\n    var dog = Dog{};\n    \n    var cat_animal = cat.asAnimal();\n    var dog_animal = dog.asAnimal();\n\n    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));\n    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));\n}\n``
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-18"
+```
+
+インターフェースの方で、インスタンスおよびvtableを持つようにする方法。スッキリしてきたけど、`init`で関数ごとの実装が必要なのがやや冗長で、関数が多くなってくると辛そうだけど、とはいえ子クラスが増えても修正の必要はないので、今のところこれが一番スッキリか？（もっと良い方法がみつかったら追記したい。）\n\n```zig\nconst std = @import(\"std\");\nconst testing = std.testing;\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = @as(*T, @ptrCast(@alignCast(ptr)));\n                    return self.voice();\n                }\n            }.func,\n            .nameFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = @as(*T, @ptrCast(@alignCast(ptr)));\n                    return self.name();\n                }\n            }.func,\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n\nconst Cat = struct {\n    name_str: []const u8,\n\n    pub fn voice(_: *const Cat) []const u8 {\n        return \"meow\";\n    }\n\n    pub fn name(self: *const Cat) []const u8 {\n        return self.name_str;\n    }\n\n    pub fn asAnimal(self: *Cat) Animal {\n        return Animal.init(Cat, self);\n    }\n};\n\nconst Dog = struct {\n    name_str: []const u8,\n\n    pub fn voice(_: *const Dog) []const u8 {\n        return \"bow wow\";\n    }\n\n    pub fn name(self: *const Dog) []const u8 {\n        return self.name_str;\n    }\n\n    pub fn asAnimal(self: *Dog) Animal {\n        return Animal.init(Dog, self);\n    }\n};\n\npub fn animalVoice(animal: *const Animal) []const u8 {\n    return animal.voice();\n}\n\npub fn animalName(animal: *const Animal) []const u8 {\n    return animal.name();\n}\n\ntest \"animal voice and name with interface\" {\n    var cat = Cat{ .name_str = \"Tama\" };\n    var dog = Dog{ .name_str = \"Pochi\" };\n    \n    var cat_animal = cat.asAnimal();\n    var dog_animal = dog.asAnimal();\n\n    try testing.expectEqualSlices(u8, \"meow\", animalVoice(&cat_animal));\n    try testing.expectEqualSlices(u8, \"bow wow\", animalVoice(&dog_animal));\n    try testing.expectEqualSlices(u8, \"Tama\", animalName(&cat_animal));\n    try testing.expectEqualSlices(u8, \"Pochi\", animalName(&dog_animal));\n}\n```
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-18"
+```
+
+init内の、`const self = @as(*T, @ptrCast(@alignCast(ptr)));` を関数を使って共通化した例。\nこれで若干init書くのは楽になるかな？（[GitHubのREADME](https://github.com/funatsufumiya/zig-polymorphism-study)には、この**フルバージョン**を記載。）\n\n```zig\n// （Animal以外の定義は先に同じ。）\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    fn castTo(comptime T: type, ptr: *anyopaque) *T {\n        return @as(*T, @ptrCast(@alignCast(ptr)));\n    }\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = Animal.castTo(T, ptr);\n                    return self.voice();\n                }\n            }.func,\n            .nameFn = struct {\n                fn func(ptr: *anyopaque) []const u8 {\n                    const self = Animal.castTo(T, ptr);\n                    return self.name();\n                }\n            }.func,\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n```
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-18"
+```
+
+さらにさらに、init内のメソッド作成ごと共通化したもの。ただ、返り値の型の変更や引数の柔軟性などを考慮していないので、正直一つ前の実装くらいが素直で良い気がする。\n\n```zig\n// （Animal以外の定義は先に同じ。）\n\nconst Animal = struct {\n    vtable: *const VTable,\n    instance: *anyopaque,\n\n    const VTable = struct {\n        voiceFn: *const fn (*anyopaque) []const u8,\n        nameFn: *const fn (*anyopaque) []const u8,\n    };\n\n    fn castTo(comptime T: type, ptr: *anyopaque) *T {\n        return @as(*T, @ptrCast(@alignCast(ptr)));\n    }\n\n    fn makeMethodCaller(\n        comptime T: type,\n        comptime method: []const u8,\n    ) fn (*anyopaque) []const u8 {\n        return struct {\n            fn caller(ptr: *anyopaque) []const u8 {\n                const self = Animal.castTo(T, ptr);\n                return @field(T, method)(self);\n            }\n        }.caller;\n    }\n\n    pub fn voice(self: *const Animal) []const u8 {\n        return self.vtable.voiceFn(self.instance);\n    }\n\n    pub fn name(self: *const Animal) []const u8 {\n        return self.vtable.nameFn(self.instance);\n    }\n\n    pub fn init(comptime T: type, instance: *T) Animal {\n        const vtable = comptime VTable{\n            .voiceFn = makeMethodCaller(T, \"voice\"),\n            .nameFn = makeMethodCaller(T, \"name\"),\n        };\n        return .{\n            .vtable = &vtable,\n            .instance = instance,\n        };\n    }\n};\n```
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-18",
+"body_updated_at": "2025-01-18"
+```
+
+Blueskyに書いた内容だけど、一応転記。\n\n> これ書いてて思ったけど、zigの「見えないフローはない」というのと言語自体にデフォルトのポリモーフィズムがないことによって、自分がほしいポリモーフィズムが好きに作れるというのは、ある意味良いかもしれないという気がした。\n> \n> もし A or B みたいな型が欲しい場合は、typeor(A, B) みたいな関数[^1]も自作できるし、そう考えるとcomptimeすごい。\n\nこれについてさらにコメントするとすれば、ポリモーフィズムというのはある意味でコードをわかりにくくしてしまうので、C言語のように素直に`abs` / `fabs` / `labs` のように別関数にしてしまう方が、状況によってはわかりやすいのかもしれない。（あるいは最初の例のようにストレートに`anytype`使ってしまう[^2]とか。）\n\n[^1]: zigは型自体を値として返すことができ、型を値として引数に渡せることに注意。\n[^2]: なんとなくRubyのコンパイル時verという気がして、自分は個人的には好き。動的な処理でありながらもコンパイラの静的解析の恩恵が受けれるという、何とも不思議な気分。（もはやcomptimeは静的解析の域を超えているが…。）
+
+```
+"author": "funatsufumiya",
+"created_at": "2025-01-23",
+"body_updated_at": "2025-01-23"
+```
+
+ちなみに今回の記事の範疇を超えるものの、zigで総称型のようなものを作るときは、わざわざ `const XXX = struct { }` とせずに、関数で直接、**無名構造体**を返すケースが多い。これは、zigでは型とstructは（comptimeには）ほぼ同列に扱われるためで、zigに慣れていないととても不思議に感じるし、最初、変数の型には何を指定すれば良いのか一瞬戸惑う。（この辺はなんとなくJavaScriptに似ているような気もする。）\n\n（詳しく知りたい方は以下の記事などが詳しい。）\nhttps://zenn.dev/drumato/books/learn-zig-to-be-a-beginner/viewer/code-reading-stdlib-arraylist
+
