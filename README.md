@@ -2,7 +2,7 @@
 
 Zennの `@funatsufumiya` アカウント閉鎖に伴うバックアップです。
 
-[articles](./articles)以下にあるMarkdownより内容閲覧が可能です。目次は以下にあります。
+[articles](./articles)や[scraps_md](./scraps_md)以下にあるMarkdownより内容閲覧が可能です。目次は以下にあります。
 
 ## 目次
 
