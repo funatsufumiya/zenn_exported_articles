@@ -132,7 +132,7 @@ test "animal voice with interface" {
     try testing.expectEqualSlices(u8, "meow", animalVoice(&cat_animal));
     try testing.expectEqualSlices(u8, "bow wow", animalVoice(&dog_animal));
 }
-``
+```
 
 ---
 
