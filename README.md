@@ -20,6 +20,8 @@ Zennの `@funatsufumiya` アカウント閉鎖に伴うバックアップです�
 
 ### scraps
 
+(※ 画像の多くがリンク切れで、実体は [images](./images/) にあるが未整理。 )
+
 - [Zigの@typeInfo()やbuiltinで遊ぶ ( ≒ @compileLogを使ってcomptimeで遊ぶ)](scraps_md/01dd6f4ff03a1f.json.md)
     - [JSON](scraps/01dd6f4ff03a1f.json)
 - [Bevy Engineプラグイン 便利そうなものまとめ 2025](scraps_md/05f699730ab2ee.json.md)
